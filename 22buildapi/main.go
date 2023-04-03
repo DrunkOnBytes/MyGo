@@ -21,7 +21,7 @@ type Course struct {
 
 type Author struct {
 	Fullname string `json:"fullname"`
-	Website  string `json:"website"`
+	Website  string `json:"-"`
 }
 
 // fake DB
@@ -37,21 +37,36 @@ func main() {
 	r := mux.NewRouter()
 
 	//seeding
-	courses = append(courses,Course{
-		CourseId: "7", 
-		CourseName: "Flutter",
+	courses = append(courses, Course{
+		CourseId:    "7",
+		CourseName:  "Flutter",
 		CoursePrice: 500,
 		Author: &Author{
 			Fullname: "A Sinha",
-			Website: "asinha.com",
+			Website:  "asinha.com",
+		},
+	})
+
+	courses = append(courses, Course{
+		CourseId:    "3",
+		CourseName:  "GoLang",
+		CoursePrice: 300,
+		Author: &Author{
+			Fullname: "Arjun S",
+			Website:  "arjuns.com",
 		},
 	})
 
 	//routing
 	r.HandleFunc("/", serveHome).Methods("GET")
+	r.HandleFunc("/courses", getAllCourses).Methods("GET")
+	r.HandleFunc("/course/{id}", getOneCourse).Methods("GET")
+	r.HandleFunc("/course", createOneCourse).Methods("POST")
+	r.HandleFunc("/course/{id}", updateOneCourse).Methods("PUT")
+	r.HandleFunc("/course/{id}", deleteOneCourse).Methods("DELETE")
 
 	//listen on port
-	log.Fatal(http.ListenAndServe(":4000",r))
+	log.Fatal(http.ListenAndServe(":4000", r))
 }
 
 //controllers
@@ -67,7 +82,7 @@ func getAllCourses(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(courses)
 }
 
-func getOneCourses(w http.ResponseWriter, r *http.Request) {
+func getOneCourse(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Get One courses")
 	w.Header().Set("Content-Type", "application/json")
 
@@ -132,16 +147,16 @@ func updateOneCourse(w http.ResponseWriter, r *http.Request) {
 	//did not include edge cases
 }
 
-func deleteOneCourse(w http.ResponseWriter, r *http.Request){
+func deleteOneCourse(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Delete one course")
 	w.Header().Set("Content-Type", "application/json")
-	
+
 	params := mux.Vars(r)
 
 	for index, course := range courses {
-		if course.CourseId == params["id"]{
+		if course.CourseId == params["id"] {
 			courses = append(courses[:index], courses[index+1:]...)
 			break
 		}
-	} 
+	}
 }
